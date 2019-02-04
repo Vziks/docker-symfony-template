@@ -1,0 +1,62 @@
+version: '3.2'
+
+services:
+  symfony:
+    build:
+      context: .
+      dockerfile: docker/symfony/Dockerfile
+    container_name: symfony-template.symfony
+    ports:
+     - "83:80"
+    volumes:
+      - .:/var/www/html
+    networks:
+      - backend
+  nginx:
+    image: nginx:mainline-alpine
+    hostname: mysite.local
+    container_name: symfony-template.nginx
+    env_file:
+      - .env
+    volumes:
+      - ./docker/sites.nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/dev.nginx.conf:/etc/nginx/dev.conf:ro
+      - ./docker/rules.vhost.nginx.conf:/etc/nginx/rules.vhost.conf:ro
+      - ./public:/var/www/html/public
+    extra_hosts:
+      - "my.webapp:127.0.0.1"
+      - "mysite.local:127.0.0.1"
+    ports:
+      - 1337:80
+    links:
+      - symfony:phphost
+    networks:
+      - backend
+  mysql:
+      image: mysql:5.7
+      container_name: symfony-template.mysql
+      environment:
+        MYSQL_DATABASE: db_drive
+        MYSQL_USER: root
+        MYSQL_ROOT_PASSWORD: root
+      volumes:
+        - ~/.docker-mysql-databases/db_drive:/var/lib/mysql
+      ports:
+        - "3307:3306"
+      networks:
+        backend:
+          aliases:
+            - mysql-host
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: symfony-template.phpmyadmin
+    environment:
+      PMA_HOST: mysql-host
+    ports:
+      - "3309:80"
+    networks:
+      - backend
+
+networks:
+  backend: ~
