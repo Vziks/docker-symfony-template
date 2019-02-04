@@ -18,4 +18,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN pecl install apcu imagick
 RUN docker-php-ext-enable apcu imagick
 
+RUN echo "expose_php = Off" > 	/usr/local/etc/php/php.ini
+
+
 WORKDIR /var/www/html
